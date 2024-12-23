@@ -9,8 +9,8 @@ const client = new Eureka({
     // application instance information
     instance: {
         app: 'a-node-service',
-        hostName: 'localhost',
-        ipAddr: '127.0.0.1',
+        hostName:  process.env.HOST_NAME||'localhost',
+        ipAddr: process.env.IP_ADDR||'127.0.0.1',
         statusPageUrl: 'http://localhost:3001',
         vipAddress: 'a-node-service',
         port: {
