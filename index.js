@@ -14,7 +14,7 @@ const amqp = require('amqplib');
 // Конфигурация
 const config = {
     protocol: 'amqp',
-    hostname: 'localhost',
+    hostname: process.env.RABBIT_HOST || 'localhost',
     port: 5672,
     username: 'guest',
     password: 'guest',
