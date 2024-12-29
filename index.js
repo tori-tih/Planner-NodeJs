@@ -76,8 +76,8 @@ async function setupConsumer() {
                 try {
                     const content = JSON.parse(msg.content.toString());
                     console.log(" [x] Received message:", content);
-                    mes+='/n';
-                    mes+=content.toString();
+                    mes+='\n';
+                    mes+=msg.content.toString();
                     // Здесь можно добавить обработку полученного сообщения
                     // Например:
                     await processMessage(content);
