@@ -4,26 +4,21 @@ const Eureka = require('eureka-js-client').Eureka;
 // создаем объект приложения
 const PORT = process.env.PORT || 3001;
 const app = express();
-
-// Название очереди
 const QUEUE = 'message_queue';
-
-// consumer.js
 const amqp = require('amqplib');
 let mes = '';
 
-// Конфигурация
+
 const config = {
     protocol: 'amqp',
     hostname: process.env.RABBIT_HOST || 'localhost',
     port: 5672,
-    username: 'guest',
-    password: 'guest',
+    username: process.env.RABBIT_USER || 'guest',
+    password: process.env.RABBIT_PSS || 'guest',
     vhost: '/'
 };
 
 const client = new Eureka({
-    // application instance information
     instance: {
         app: 'a-node-service',
         hostName:  process.env.HOST_NAME||'localhost',
@@ -49,25 +44,20 @@ const client = new Eureka({
     },
 });
 
-// Функция для настройки и запуска consumer
 async function setupConsumer() {
     try {
-        // Создаем подключение к Rabbit
         const connection = await amqp.connect(config);
         console.log('Connected to RabbitMQ');
 
-        // Создаем канал
         const channel = await connection.createChannel();
         console.log('Channel created');
 
-        // Убеждаемся, что очередь существует
         await channel.assertQueue(QUEUE, {
             durable: true
         });
 
         console.log(' [*] Waiting for messages in %s. To exit press CTRL+C', QUEUE);
 
-        // Устанавливаем префetch
         channel.prefetch(1);
 
         // Начинаем получать сообщения
@@ -78,15 +68,11 @@ async function setupConsumer() {
                     console.log(" [x] Received message:", content);
                     mes+='\n';
                     mes+=msg.content.toString();
-                    // Здесь можно добавить обработку полученного сообщения
-                    // Например:
                     await processMessage(content);
 
-                    // Подтверждаем обработку сообщения
                     channel.ack(msg);
                 } catch (error) {
                     console.error('Error processing message:', error);
-                    // В случае ошибки возвращаем сообщение в очередь
                     channel.nack(msg);
                 }
             }
@@ -109,13 +95,12 @@ async function setupConsumer() {
     }
 }
 
-// Функция обработки сообщения
 async function processMessage(content) {
     console.log('Processing message:', content);
 }
 
 
-// определяем обработчик для маршрута "/"
+// определяем обработчик
 client.logger.level('debug');
 client.start(error => {
     console.log(error || 'NodeJS Eureka Started!');
@@ -130,13 +115,10 @@ client.start(error => {
         console.error('Failed to setup consumer:', error);
     });
 });
-
-// Запускаем Express сервер
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-// Обработка завершения работы приложения
 process.on('SIGINT', async () => {
     try {
         await client.stop();
